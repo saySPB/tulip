@@ -1,0 +1,33 @@
+name: Cloud App Builder
+on:
+  workflow_dispatch:
+    inputs:
+      target_os:
+        description: 'Выберите ОС (android/aurora)'
+        required: true
+      project_type:
+        description: 'Тип проекта (android/flutter/react)'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Сборка Android (Kotlin/Java)
+        if: inputs.target_os == 'android' && inputs.project_type == 'android'
+        run: |
+          ./gradlew assembleRelease
+          mv app/build/outputs/apk/release/*.apk app.apk
+
+      - name: Сборка Flutter
+        if: inputs.target_os == 'android' && inputs.project_type == 'flutter'
+        run: |
+          flutter build apk --release
+          mv build/app/outputs/flutter-apk/*.apk app.apk
+
+      - name: Генерация QML (для Aurora OS)
+        if: inputs.target_os == 'aurora'
+        run: |
+          echo "Конвертируем макеты в QML..." > template.qml
